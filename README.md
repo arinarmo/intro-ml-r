@@ -10,15 +10,13 @@ Este repositorio alberga notas y código para la clase del diplomado de Data Sci
 
 ## [Regresión lineal](notebooks/regresion-lineal.Rmd)
 
-## Regresión logística
-
-## Optimización de modelos
+## [Regresión logística](notebooks/regresion-logistica.Rmd)
 
 ## Evaluación de modelos
 
-## Árbol de clasificación y regresión
+## Redes neuronales
 
-## Modelos de ensamble: Bosque aleatorio
+## Métodos basados en árboles
 
 ## Interpretabilidad
 
