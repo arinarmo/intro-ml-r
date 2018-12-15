@@ -1,0 +1,70 @@
+---
+title: "Regresión Logística"
+output: html_notebook
+---
+
+```{r}
+library(ISLR)
+datos <- Auto
+datos["alto_desempeno"] <- datos$mpg > 30
+ggplot(datos, aes(x=horsepower, y=weight, color=alto_desempeno)) + 
+  geom_point() + 
+  geom_abline()
+
+lm(alto_desempeno~horsepower+weight, data=datos)
+```
+
+```{r}
+x <- -5:5
+f <- function(x) {
+  1/(1+exp(-x))
+}
+ggplot(mapping=aes(x=x, y=f(x))) + geom_line()
+```
+```{r}
+set.seed(42)
+n <- nrow(Auto)
+train_size <- 300
+
+# Indices de entrenamiento
+train_idx <- sample(1:n, train_size, replace=FALSE)
+train_cols <- c("horsepower", "weight")
+target_col <- "alto_desempeno"
+
+train <- datos[train_idx, c(train_cols, target_col)]
+test <- datos[-train_idx, c(train_cols, target_col)]
+
+
+reg.log <- glm(alto_desempeno ~ horsepower + weight, data=train, family=binomial(link="logit"))
+mean((reg.log$fitted.values > 0.5) != datos$alto_desempeno)
+sum((reg.log$fitted.values > 0.5) != datos$alto_desempeno)
+preds <- predict(reg.log, test, type = "response") > 0.5
+shapes <- ifelse(preds == test$alto_desempeno, 1, 4)
+ggplot(test, aes(x=horsepower, y=weight, color=preds, shape=shapes)) + 
+  geom_point() + scale_shape_identity()
+
+```
+
+```{r}
+library(ggplot2)
+datos <- iris
+datos$setosa <- datos$Species == "setosa"
+
+n <- nrow(datos)
+train_size <- 100
+
+train_idx <- sample(1:n, train_size, replace=FALSE)
+train_cols <- c("Sepal.Width", "Sepal.Length", "Petal.Length", "Petal.Width")
+target_col <- "setosa"
+
+train <- datos[train_idx, c(train_cols, target_col)]
+test <- datos[-train_idx, c(train_cols, target_col)]
+
+reg.log <- glm(setosa~Sepal.Width+Sepal.Length+Petal.Width+Petal.Length, data=train, family=binomial(link="logit"))
+
+preds <- predict(reg.log, test, type="response") > 0.5
+shapes <- ifelse(preds == test$setosa, 1, 4)
+ggplot(test, aes(x=Petal.Length, y=Petal.Width, color=preds, shape=shapes)) + 
+  geom_point() + scale_shape_identity()
+```
+
