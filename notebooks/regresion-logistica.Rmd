@@ -68,3 +68,77 @@ ggplot(test, aes(x=Petal.Length, y=Petal.Width, color=preds, shape=shapes)) +
   geom_point() + scale_shape_identity()
 ```
 
+```{r}
+library(ggplot2)
+set.seed(2017)
+datos <- iris
+
+n <- nrow(datos)
+train_size <- 100
+
+train_idx <- sample(1:n, train_size, replace=FALSE)
+train_cols <- c("Sepal.Width", "Sepal.Length", "Petal.Length", "Petal.Width")
+target_col <- "Species"
+
+train <- datos[train_idx,]
+test <- datos[-train_idx,]
+
+clases <- levels(factor(datos[[target_col]]))
+modelos <- lapply(clases, function(clase) {
+  target = as.numeric(train[[target_col]] == clase)
+  model <- glm(target~., data=train[train_cols], family=binomial(link="logit"))
+  model
+})
+
+proba.matrix <- sapply(modelos, function(m) predict(m, test, type="response"))
+pred.clases <- apply(proba.matrix, 1, function(r) clases[which.max(r)])
+
+shapes <- ifelse(pred.clases == test$Species, 1, 4)
+ggplot(test, aes(x=Petal.Length, y=Petal.Width, color=pred.clases, shape=shapes)) + 
+  geom_point() + scale_shape_identity()
+```
+
+```{r}
+library(ISLR)
+set.seed(42)
+n <- nrow(Auto)
+datos <- Auto
+train_size <- 300
+
+# Indices de entrenamiento
+train_idx <- sample(1:n, train_size, replace=FALSE)
+train_cols <- c("horsepower", "weight", "mpg")
+target_col <- "origin"
+
+train <- datos[train_idx, c(train_cols, target_col)]
+test <- datos[-train_idx, c(train_cols, target_col)]
+
+clases <- levels(factor(datos[[target_col]]))
+modelos <- lapply(clases, function(clase) {
+  target = as.numeric(train[[target_col]] == clase)
+  model <- glm(target~., data=train[train_cols], family=binomial(link="logit"))
+  model
+})
+
+proba.matrix <- sapply(modelos, function(m) predict(m, test, type="response"))
+pred.clases <- apply(proba.matrix, 1, function(r) clases[which.max(r)])
+
+sum(pred.clases != test[[target_col]])/nrow(test)
+
+shapes <- ifelse(pred.clases == test[[target_col]], 1, 4)
+ggplot(test, aes(x=horsepower, y=weight, color=pred.clases, shape=shapes)) + 
+  geom_point() + scale_shape_identity()
+```
+```{r}
+library(nnet)
+
+model <- multinom(origin~., data=train)
+pred.clases <- predict(model, test)
+
+sum(pred.clases != test[[target_col]])/nrow(test)
+
+shapes <- ifelse(pred.clases == test[[target_col]], 1, 4)
+ggplot(test, aes(x=horsepower, y=weight, color=pred.clases, shape=shapes)) + 
+  geom_point() + scale_shape_identity()
+```
+
