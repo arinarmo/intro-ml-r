@@ -12,9 +12,9 @@ Este repositorio alberga notas y código para la clase del diplomado de Data Sci
 
 ## [Regresión logística](notebooks/regresion-logistica.Rmd)
 
-## Evaluación de modelos
+## [Redes neuronales](notebooks/neural_nets.Rmd)
 
-## Redes neuronales
+## Evaluación de modelos
 
 ## Métodos basados en árboles
 

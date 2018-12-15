@@ -1,0 +1,102 @@
+---
+title: "Redes Neuronales"
+output: html_notebook
+---
+
+
+```{r}
+library(nnet)
+library(readr)
+train <- read_csv("../data/zip-train.csv")
+test <- read_csv("../data/zip-test.csv")
+
+names(train) <- c("label", paste0("pixel", 1:256))
+names(test) <- c("label", paste0("pixel", 1:256))
+```
+
+```{r}
+
+library(ggplot2)
+draw_mnist <- function(row) {
+  label <- row[1]
+  pixels <- unlist(row[2:257])
+  x <- rep(1:16, 16)
+  y <- rep(16:1, each=16)
+  ggplot(mapping=aes(x=x, y=y, fill=pixels)) + 
+    geom_tile() +
+    ggtitle(label) +
+    scale_fill_continuous(low="white", high="black") +
+    coord_fixed() +
+    theme_void()
+}
+
+draw_mnist(train[110,])
+```
+
+```{r}
+nrow(test)
+```
+
+```{r}
+library(nnet)
+set.seed(42)
+model <- multinom(label~., data=train, MaxNWt=100000, maxit = 150)
+```
+
+```{r}
+coefs <- coef(model)
+draw_mnist(coefs[1,])
+```
+
+```{r}
+pred.class <- predict(model, test)
+draw_mnist(c(pred.class[256], test[256, 2:257]))
+sum(pred.class != test[["label"]])/nrow(test)
+```
+```{r}
+library(nnet)
+model <- nnet(factor(label)~., data=train, size=32, 
+              MaxNWt=100000, maxit = 100)
+pred.class <- predict(model, test, type="class")
+```
+```{r}
+sum(pred.class != test[["label"]])/nrow(test)
+
+
+```
+
+
+```{r}
+library(keras)
+x_train <- as.matrix(train[,2:257])
+x_test <- as.matrix(test[,2:257])
+
+y_train <- to_categorical(train[["label"]], 10)
+y_test <- to_categorical(test[["label"]], 10)
+```
+
+
+```{r}
+model <- keras_model_sequential() 
+model %>% 
+  layer_dense(units = 64, activation = 'relu', input_shape = c(256)) %>% 
+  layer_dropout(rate = 0.4) %>% 
+  layer_dense(units = 32, activation = 'relu') %>%
+  layer_dropout(rate = 0.3) %>%
+  layer_dense(units = 10, activation = 'softmax')
+
+model %>% compile(
+  loss = 'categorical_crossentropy',
+  optimizer = optimizer_rmsprop(),
+  metrics = c('accuracy')
+)
+
+history <- model %>% fit(
+  x_train, y_train, 
+  epochs = 10, batch_size = 128, 
+  validation_split = 0.2
+)
+
+plot(history)
+```
+
